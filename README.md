@@ -18,9 +18,9 @@ A Docker image based on [ConvertX](https://github.com/C4illin/ConvertX) **built 
 
 This image extends the base ConvertX image with:
 
-- NVIDIA CUDA Toolkit
-- FFmpeg NVENC development libraries
-- Debian non-free repositories for additional codec support
+- **NVIDIA CUDA Libraries**: `libcuda1`, `libnvcuvid1`, `libnvidia-encode1` for GPU acceleration
+- **FFmpeg NVENC Support**: `libavcodec-extra` and `libffmpeg-nvenc-dev` libraries
+- **Extended Codec Support**: Debian non-free and non-free-firmware repositories for additional codec support
 
 ## Automatic Updates
 
