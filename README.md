@@ -22,15 +22,6 @@ This image extends the base ConvertX image with:
 - **FFmpeg NVENC Support**: `libavcodec-extra` and `libffmpeg-nvenc-dev` libraries
 - **Extended Codec Support**: Debian non-free and non-free-firmware repositories for additional codec support
 
-## Automatic Updates
-
-The repository includes an automated script that:
-
-1. Checks for new ConvertX releases
-2. Automatically builds and publishes updated Docker images
-3. Tags images with version numbers and `latest`
-4. Commits version changes to the repository
-
 ## License
 
 This project follows the same license as the upstream ConvertX project.
