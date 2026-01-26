@@ -1,0 +1,81 @@
+name: Check and Publish ConvertX
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  check-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all tags
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Get versions
+        id: versions
+        run: |
+          # Get latest ConvertX version
+          LATEST_VERSION=$(curl -s "https://api.github.com/repos/C4illin/ConvertX/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+
+          # Get current version from latest git tag
+          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          # Remove 'v' prefix if present
+          CURRENT_VERSION=${CURRENT_VERSION#v}
+
+          # Build image name from repository owner
+          IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/convertx"
+
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+          echo "Current version: $CURRENT_VERSION"
+          echo "Latest version: $LATEST_VERSION"
+          echo "Image name: $IMAGE_NAME"
+
+      - name: Check if update needed
+        id: check
+        run: |
+          if [ "${{ steps.versions.outputs.current_version }}" != "${{ steps.versions.outputs.latest_version }}" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "New version available: ${{ steps.versions.outputs.latest_version }}"
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "No new version available. Current version is up-to-date."
+          fi
+
+      - name: Build and push Docker image
+        if: steps.check.outputs.update_needed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          no-cache: true
+          tags: |
+            ${{ steps.versions.outputs.image_name }}:${{ steps.versions.outputs.latest_version }}
+            ${{ steps.versions.outputs.image_name }}:latest
+
+      - name: Create and push git tag
+        if: steps.check.outputs.update_needed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git tag -a "v${{ steps.versions.outputs.latest_version }}" -m "Update to version ${{ steps.versions.outputs.latest_version }}"
+          git push origin "v${{ steps.versions.outputs.latest_version }}"
