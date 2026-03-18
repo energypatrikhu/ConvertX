@@ -42,8 +42,10 @@ jobs:
           # Remove 'v' prefix if present
           CURRENT_VERSION=${CURRENT_VERSION#v}
 
-          echo "current_version=$CURRENT_VERSION" >> $GITEA_OUTPUT
-          echo "latest_version=$LATEST_VERSION" >> $GITEA_OUTPUT
+          echo "current_version=${CURRENT_VERSION}" >> $GITEA_OUTPUT
+          echo "latest_version=${LATEST_VERSION}" >> $GITEA_OUTPUT
+
+          echo "ConvertX: ${CURRENT_VERSION} -> ${LATEST_VERSION}"
 
       - name: Check if update needed
         id: check
