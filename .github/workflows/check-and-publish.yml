@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/convertx
+  IMAGE_NAME: ${{ github.repository_owner }}/convertx
 
 jobs:
   check-and-publish:
@@ -31,7 +31,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Get versions
