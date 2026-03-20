@@ -4,8 +4,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/convertx
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/convertx
 
 jobs:
   check-and-publish:
@@ -16,19 +15,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Fetch all tags
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Extract Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v6
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Get versions
         id: versions
@@ -59,14 +63,18 @@ jobs:
 
       - name: Build and push Docker image
         if: steps.check.outputs.update_needed == 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
-          context: .
-          push: true
-          no-cache: true
+          platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6,linux/riscv64
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            QBIT_TAG=${{ steps.versions.outputs.latest_qbit_standard }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.latest_version }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.latest_qbit_standard }}_${{ steps.versions.outputs.latest_vuetorrent }}
+            ${{ env.IMAGE_NAME }}:latest
+          annotations: ${{ steps.meta.outputs.annotations }}
+          provenance: true
+          sbom: true
 
       - name: Create and push git tag
         if: steps.check.outputs.update_needed == 'true'
