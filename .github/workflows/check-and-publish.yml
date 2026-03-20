@@ -65,7 +65,7 @@ jobs:
         if: steps.check.outputs.update_needed == 'true'
         uses: docker/build-push-action@v7
         with:
-          platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6,linux/riscv64
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             QBIT_TAG=${{ steps.versions.outputs.latest_qbit_standard }}
