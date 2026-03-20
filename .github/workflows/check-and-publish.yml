@@ -70,7 +70,7 @@ jobs:
           build-args: |
             QBIT_TAG=${{ steps.versions.outputs.latest_qbit_standard }}
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.latest_qbit_standard }}_${{ steps.versions.outputs.latest_vuetorrent }}
+            ${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.latest_version }}
             ${{ env.IMAGE_NAME }}:latest
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: true
