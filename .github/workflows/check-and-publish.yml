@@ -1,7 +1,9 @@
 name: Check and Publish ConvertX
 
 on:
-  workflow_dispatch: # Allow manual trigger
+  schedule:
+    - cron: "0 0 * * *" # Run every day
+  workflow_dispatch: # Allow manual triggering
 
 env:
   IMAGE_NAME: ${{ github.repository_owner }}/convertx
